@@ -4,8 +4,8 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.image import MIMEImage
 
 # 在此填入你的Gmail地址與應用程式密碼
-email_address = "max0605123789@gmail.com"
-app_password = "auvs jqaw madz rpjk"  # 應用程式密碼
+email_address = "your_email@gmail.com"
+app_password = "xxxx xxxx xxxx xxxx"  # 應用程式密碼
 Subject = "嵌入式系統第XX組"
 body = "尊敬的老師您好：\
 \n\n　　請恕學生冒昧來信。附件中附上一張圖片，圖中展示了特定時段內的氣溫變化關係。透過該圖表，您可以清楚地看到各時間點的溫度起伏，以利了解趨勢並進行相關分析。\
