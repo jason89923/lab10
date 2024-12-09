@@ -15,8 +15,9 @@ if not data:
 times = [row[0] for row in data]
 temps = [row[1] for row in data]
 
-max_temp = max(temps)
-min_temp = min(temps)
+# 固定Y軸範圍為0~100
+y_min = 0
+y_max = 100
 
 # 設定圖片尺寸
 img_width = 800
@@ -26,7 +27,6 @@ img_height = 600
 img = Image.new("RGB", (img_width, img_height), "white")
 draw = ImageDraw.Draw(img)
 
-# 簡單計算點的座標
 # 留一些邊界空間
 padding_left = 50
 padding_right = 50
@@ -36,12 +36,12 @@ padding_bottom = 50
 plot_width = img_width - padding_left - padding_right
 plot_height = img_height - padding_top - padding_bottom
 
-# 將溫度數據縮放至圖表範圍內
+# 將溫度數據縮放至圖表範圍內(0~100)
 def scale_temp_to_y(temp):
-    if max_temp == min_temp:
-        return img_height//2
     # y座標0在上方，所以要反轉
-    return padding_top + plot_height - int((temp - min_temp)/(max_temp - min_temp)*plot_height)
+    if y_max == y_min:
+        return img_height//2
+    return padding_top + plot_height - int((temp - y_min)/(y_max - y_min)*plot_height)
 
 # 將每個點在X軸均勻分佈
 x_step = plot_width / (len(temps) - 1) if len(temps) > 1 else 0
@@ -62,16 +62,43 @@ draw.line((padding_left, padding_top, padding_left, img_height - padding_bottom)
 for i in range(len(points) - 1):
     draw.line((points[i], points[i+1]), fill="blue", width=2)
 
-# 繪製標題及標籤 (需要字體檔案，如無可省略或使用系統預設)
-# 若環境中無法指定字型路徑，可不使用字型參數
+# 載入字型(若無法載入，則使用預設)
 title_font = None
+label_font = None
 try:
-    # 試圖使用一個系統字體 (可自行調整路徑)
     title_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 20)
+    label_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 12)
 except:
     pass
 
+# 繪製標題
 draw.text((img_width//2 - 100, 10), "Temperature Over Time", fill="black", font=title_font)
+
+# 加入Y軸標籤(刻度)
+# 例如每20度一個刻度：0, 20, 40, 60, 80, 100
+y_ticks = [0, 20, 40, 60, 80, 100]
+for val in y_ticks:
+    y_pos = scale_temp_to_y(val)
+    # 繪製刻度線
+    draw.line((padding_left-5, y_pos, padding_left, y_pos), fill="black")
+    # 繪製刻度值
+    draw.text((padding_left-45, y_pos-7), f"{val}", fill="black", font=label_font)
+
+# 加入X軸標籤(刻度)
+num_x_ticks = min(len(times), 6)  # 最多顯示6個X刻度
+if len(times) > 1:
+    step = (len(times)-1) / (num_x_ticks-1)
+else:
+    step = 1
+
+for i in range(num_x_ticks):
+    idx = int(round(i*step))
+    x_pos = padding_left + idx*x_step
+    # 繪製刻度線
+    draw.line((x_pos, img_height - padding_bottom, x_pos, img_height - padding_bottom+5), fill="black")
+    # 顯示時間(可依需求格式化)
+    time_label = str(times[idx])
+    draw.text((x_pos-20, img_height - padding_bottom + 10), time_label, fill="black", font=label_font)
 
 # 將圖片儲存成檔案
 img.save("temperature.png")
